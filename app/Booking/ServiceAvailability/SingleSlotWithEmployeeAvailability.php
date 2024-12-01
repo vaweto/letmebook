@@ -1,7 +1,15 @@
 <?php
 
-namespace App\Booking;
+namespace App\Booking\ServiceAvailability;
 
+use App\Booking\Date;
+use App\Booking\DateCollection;
+use App\Booking\ScheduleAvailability\Providers\EmployeeScheduleProvider;
+use App\Booking\ScheduleAvailability\Providers\ServiceScheduleProvider;
+use App\Booking\ScheduleAvailability\ScheduleAvailability;
+use App\Booking\ScheduleAvailability\ScheduleAvailabilityCalculator;
+use App\Booking\Slot;
+use App\Booking\SlotGenerator;
 use App\Models\Appointment;
 use App\Models\Employee;
 use App\Models\Service;
@@ -16,13 +24,22 @@ use Spatie\Period\Precision;
  * Class responsible for determining the availability of service slots
  * based on employee schedules, service durations, and existing appointments.
  */
-class ServiceSlotAvailability
+class SingleSlotWithEmployeeAvailability implements BookingServiceInterface
 {
+    /**
+     * @var ServiceScheduleProvider
+     */
+    private EmployeeScheduleProvider $scheduleProvider;
+
     /**
      * @param Collection $employees - Collection of employees
      * @param Service $service - The service for which availability is checked
      */
-    public function __construct(protected Collection $employees, protected Service $service) {}
+    public function __construct(
+        protected Collection $employees,
+        protected Service $service,
+        protected ScheduleAvailabilityCalculator $scheduleAvailabilityCalculator
+    ) {}
 
     /**
      * Generates available slots for a given time period.
@@ -31,15 +48,19 @@ class ServiceSlotAvailability
      * @param Carbon $endsAt - End date of the availability period
      * @return DateCollection - Collection of available dates with slots
      */
-    public function forPeriod(Carbon $startsAt, Carbon $endsAt)
+    public function forPeriod(Carbon $startsAt, Carbon $endsAt): DateCollection
     {
         // Generate a collection of slots for each day in the given period, based on the service duration.
         $range = (new SlotGenerator($startsAt, $endsAt))->generate($this->service->duration);
 
         // Iterate through each employee to check their availability within the specified period.
         $this->employees->each(function (Employee $employee) use ($startsAt, $endsAt, &$range) {
+            $this->scheduleProvider = new EmployeeScheduleProvider($employee, $this->service);
             // Get available periods for the employee based on their schedule.
-            $periods = (new ScheduleAvailability($employee, $this->service))->forPeriod($startsAt, $endsAt);
+            $periods = (new ScheduleAvailability(
+                provider: $this->scheduleProvider,
+                calculator: $this->scheduleAvailabilityCalculator)
+            )->forPeriod($startsAt, $endsAt);
 
             // Subtract any existing appointments from the available periods.
             $periods = $this->removeAppointments($periods, $employee);

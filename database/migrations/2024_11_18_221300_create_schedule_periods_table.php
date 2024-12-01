@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('services', function (Blueprint $table) {
+        Schema::create('schedule_periods', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('slug')->unique();
-            $table->unsignedInteger('duration');
-            $table->unsignedInteger('price');
-            $table->integer('number_of_slots')->default(1);
-            $table->string('type')->default('single');
+            $table->foreignId('schedule_id')->constrained()->onDelete('cascade'); // Links to the schedule
+            $table->date('start_date'); // When this schedule starts being applicable
+            $table->date('end_date'); // When this schedule stops being applicable
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('services');
+        Schema::dropIfExists('schedule_periods');
     }
 };

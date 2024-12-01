@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Employee extends Model
 {
@@ -16,14 +17,14 @@ class Employee extends Model
         return $this->belongsToMany(Service::class);
     }
 
-    public function schedules(): HasMany
+    public function schedules(): MorphMany
     {
-        return $this->hasMany(Schedule::class);
+        return $this->morphMany(Schedule::class, 'schedulable');
     }
 
-    public function scheduleExclusions(): HasMany
+    public function scheduleExclusions(): MorphMany
     {
-        return $this->hasMany(ScheduleExclusion::class);
+        return $this->morphMany(ScheduleExclusion::class, 'excludable');
     }
 
     public function appointments(): HasMany

@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Booking\AvailabilityTransformer;
 use App\Booking\Date;
-use App\Booking\ServiceSlotAvailability;
+use App\Booking\ServiceAvailability\SingleSlotWithEmployeeAvailability;
 use App\Booking\Slot;
 use App\Livewire\Forms\CheckoutForm;
 use App\Models\Appointment;
@@ -65,7 +65,7 @@ class Checkout extends Component
     #[Computed(persist: true)]
     public function availability()
     {
-        return (new ServiceSlotAvailability(
+        return (new SingleSlotWithEmployeeAvailability(
             employees: $this->employee ? collect([$this->employee]) : Employee::get(),
             service: $this->service))
             ->forPeriod(

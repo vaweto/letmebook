@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('schedule_exclusions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained();
-            $table->datetime('starts_at');
-            $table->datetime('ends_at');
+            $table->morphs('excludable'); // Polymorphic relation: 'excludable_type' and 'excludable_id'
+            $table->timestamp('starts_at');
+            $table->timestamp('ends_at');
             $table->timestamps();
         });
     }

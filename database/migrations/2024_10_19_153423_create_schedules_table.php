@@ -13,23 +13,12 @@ return new class extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained();
-            $table->date('starts_at');
-            $table->date('ends_at');
-            $table->time('monday_starts_at')->nullable();
-            $table->time('monday_ends_at')->nullable();
-            $table->time('tuesday_starts_at')->nullable();
-            $table->time('tuesday_ends_at')->nullable();
-            $table->time('wednesday_starts_at')->nullable();
-            $table->time('wednesday_ends_at')->nullable();
-            $table->time('thursday_starts_at')->nullable();
-            $table->time('thursday_ends_at')->nullable();
-            $table->time('friday_starts_at')->nullable();
-            $table->time('friday_ends_at')->nullable();
-            $table->time('saturday_starts_at')->nullable();
-            $table->time('saturday_ends_at')->nullable();
-            $table->time('sunday_starts_at')->nullable();
-            $table->time('sunday_ends_at')->nullable();
+            $table->morphs('schedulable'); // Polymorphic relation: 'schedulable_type' and 'schedulable_id'
+            $table->time('starts_at');
+            $table->time('ends_at');
+            $table->date('date')->nullable(); // The specific date for this schedule
+            $table->boolean('is_recurring')->default(false); // For recurring schedules
+            $table->integer('day_of_week')->nullable(); // For recurring schedules, e.g., "Monday"
             $table->timestamps();
         });
     }
